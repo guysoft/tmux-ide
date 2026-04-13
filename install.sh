@@ -33,6 +33,16 @@ info()  { echo -e "${GREEN}[+]${NC} $1"; }
 warn()  { echo -e "${YELLOW}[!]${NC} $1"; }
 error() { echo -e "${RED}[-]${NC} $1"; }
 
+# --- Cross-platform sed -i (macOS BSD sed vs GNU sed) ---
+
+sed_inplace() {
+	if [[ "$OSTYPE" == "darwin"* ]]; then
+		sed -i '' "$@"
+	else
+		sed -i "$@"
+	fi
+}
+
 # --- Uninstall ---
 
 uninstall() {
@@ -49,7 +59,7 @@ uninstall() {
 	fi
 
 	if [ -f "$TMUX_CONF" ] && grep -qF "$PLUGIN_LINE" "$TMUX_CONF"; then
-		sed -i "\|${PLUGIN_LINE}|d" "$TMUX_CONF"
+		sed_inplace "\|${PLUGIN_LINE}|d" "$TMUX_CONF"
 		info "Removed plugin line from $TMUX_CONF"
 	fi
 
@@ -84,7 +94,7 @@ install() {
 
 	# 2. Create 'ide' CLI command symlink
 	mkdir -p "$BIN_DIR"
-	ln -sfn "$PLUGIN_DIR/scripts/ide.sh" "$BIN_DIR/ide"
+	ln -sfn "$SCRIPT_DIR/scripts/ide.sh" "$BIN_DIR/ide"
 	info "Created 'ide' command at $BIN_DIR/ide"
 
 	# Check if ~/.local/bin is in PATH
@@ -103,7 +113,8 @@ install() {
 	else
 		# Insert before TPM init line if it exists, otherwise append
 		if grep -q "run.*tpm/tpm" "$TMUX_CONF"; then
-			sed -i "/run.*tpm\/tpm/i $PLUGIN_LINE" "$TMUX_CONF"
+			# Use awk to insert before TPM line (portable across macOS and Linux)
+			awk -v line="$PLUGIN_LINE" '/run.*tpm\/tpm/{print line}{print}' "$TMUX_CONF" > "$TMUX_CONF.tmp" && mv "$TMUX_CONF.tmp" "$TMUX_CONF"
 			info "Added plugin to $TMUX_CONF (before TPM init)"
 		else
 			echo "$PLUGIN_LINE" >> "$TMUX_CONF"
