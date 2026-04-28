@@ -43,8 +43,23 @@ git clone https://github.com/guysoft/tmux-ide ~/.tmux/plugins/tmux-ide && ~/.tmu
 This will:
 1. Symlink the plugin into `~/.tmux/plugins/tmux-ide/`
 2. Create an `ide` command in `~/.local/bin/` for command-line usage
-3. Add the plugin to `~/.tmux.conf` (before TPM init if present)
+3. Add the plugin to `~/.tmux.conf` (before tpack/TPM init if present)
 4. Reload your tmux config
+
+### With [tpack](https://github.com/tmuxpack/tpack) (Recommended)
+
+[tpack](https://github.com/tmuxpack/tpack) is a modern drop-in replacement for TPM with a TUI, written in Go. Install it via Homebrew (`brew install tmuxpack/tpack/tpack`) or see the [tpack installation guide](https://github.com/tmuxpack/tpack#installation).
+
+Add this line to your `~/.tmux.conf`, before the tpack init line:
+
+```tmux
+set -g @plugin 'guysoft/tmux-ide'
+
+# Initialize tpack (keep at the very bottom)
+run 'tpack init'
+```
+
+Then press `prefix + I` to install.
 
 ### With [TPM](https://github.com/tmux-plugins/tpm)
 
@@ -198,7 +213,6 @@ This plugin works well with [tmux-resurrect](https://github.com/tmux-plugins/tmu
 
 ```tmux
 # Plugins
-set -g @plugin 'tmux-plugins/tpm'
 set -g @plugin 'tmux-plugins/tmux-resurrect'
 set -g @plugin 'tmux-plugins/tmux-continuum'
 set -g @plugin 'guysoft/tmux-resurrect-opencode-sessions'
@@ -207,9 +221,11 @@ set -g @plugin 'guysoft/tmux-ide'
 # Auto-save and restore
 set -g @continuum-restore 'on'
 
-# Initialize TPM
-run '~/.tmux/plugins/tpm/tpm'
+# Initialize tpack (keep at the very bottom)
+run 'tpack init'
 ```
+
+> **Note:** If using TPM instead of tpack, replace `run 'tpack init'` with `run '~/.tmux/plugins/tpm/tpm'` and add `set -g @plugin 'tmux-plugins/tpm'` to the plugins list.
 
 ## Related Plugins
 

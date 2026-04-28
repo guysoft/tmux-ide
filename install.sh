@@ -5,7 +5,7 @@
 # This script:
 #   1. Installs the plugin to ~/.tmux/plugins/tmux-ide/
 #   2. Creates an 'ide' command symlink in ~/.local/bin/
-#   3. Adds the plugin to ~/.tmux.conf if not already present
+#   3. Adds the plugin to ~/.tmux.conf if not already present (before tpack/TPM init if present)
 #   4. Reloads tmux config if tmux is running
 #
 # Usage:
@@ -111,11 +111,12 @@ install() {
 	elif grep -qF "tmux-ide" "$TMUX_CONF"; then
 		info "Plugin already in $TMUX_CONF"
 	else
-		# Insert before TPM init line if it exists, otherwise append
-		if grep -q "run.*tpm/tpm" "$TMUX_CONF"; then
-			# Use awk to insert before TPM line (portable across macOS and Linux)
-			awk -v line="$PLUGIN_LINE" '/run.*tpm\/tpm/{print line}{print}' "$TMUX_CONF" > "$TMUX_CONF.tmp" && mv "$TMUX_CONF.tmp" "$TMUX_CONF"
-			info "Added plugin to $TMUX_CONF (before TPM init)"
+		# Insert before plugin manager init line if it exists, otherwise append
+		# Supports both tpack (run 'tpack init') and TPM (run '~/.tmux/plugins/tpm/tpm')
+		if grep -qE "run.*(tpack init|tpm/tpm)" "$TMUX_CONF"; then
+			# Use awk to insert before the init line (portable across macOS and Linux)
+			awk -v line="$PLUGIN_LINE" '/run.*(tpack init|tpm\/tpm)/{print line}{print}' "$TMUX_CONF" > "$TMUX_CONF.tmp" && mv "$TMUX_CONF.tmp" "$TMUX_CONF"
+			info "Added plugin to $TMUX_CONF (before plugin manager init)"
 		else
 			echo "$PLUGIN_LINE" >> "$TMUX_CONF"
 			info "Appended plugin to $TMUX_CONF"
