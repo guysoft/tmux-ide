@@ -113,8 +113,15 @@ tmux split-window -v -l "${BOTTOM_HEIGHT}%" -c "$DIR"
 # 3. Launch agent in right pane
 tmux send-keys -t 2 "cd '$DIR' && $AGENT_CMD" C-m
 
-# 4. Launch editor in top-left pane
-tmux send-keys -t 0 "cd '$DIR' && $EDITOR_CMD" C-m
+# 4. Launch editor in top-left pane with RPC socket for external tool access
+SESSION_NAME=$(tmux display-message -p '#{session_name}')
+WINDOW_INDEX=$(tmux display-message -p '#{window_index}')
+NVIM_IDE_SOCK="/tmp/nvim-ide-${SESSION_NAME}-${WINDOW_INDEX}.sock"
+# Remove stale socket if it exists
+rm -f "$NVIM_IDE_SOCK"
+tmux set-environment NVIM_IDE_SOCK "$NVIM_IDE_SOCK"
+# Export as env var so nvim can self-heal the socket on restart
+tmux send-keys -t 0 "cd '$DIR' && NVIM_IDE_SOCK='$NVIM_IDE_SOCK' $EDITOR_CMD --listen '$NVIM_IDE_SOCK'" C-m
 
 # 5. Set up terminal in bottom-left pane
 if [ -n "$TERMINAL_CMD" ]; then

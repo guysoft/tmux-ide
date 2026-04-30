@@ -227,6 +227,24 @@ run 'tpack init'
 
 > **Note:** If using TPM instead of tpack, replace `run 'tpack init'` with `run '~/.tmux/plugins/tpm/tpm'` and add `set -g @plugin 'tmux-plugins/tpm'` to the plugins list.
 
+## AI-Driven Debugging (debug-reach)
+
+tmux-ide exposes the nvim RPC socket as `NVIM_IDE_SOCK`, enabling AI agents to programmatically control nvim's debugger from outside. This is a key piece of the **debug-reach** feature that allows an agent to set breakpoints, launch debug sessions, and inspect state — all via RPC.
+
+This feature requires all three repos working together:
+
+| Component | Repo | Role |
+|-----------|------|------|
+| **tmux-ide** | [guysoft/tmux-ide](https://github.com/guysoft/tmux-ide) | Exposes `NVIM_IDE_SOCK` so agents can discover nvim's RPC socket |
+| **vscodium.nvim** | [guysoft/vscodium.nvim](https://github.com/guysoft/vscodium.nvim) | Provides `debug-rpc.lua` module and the skill instructions |
+| **NvGuy** | [guysoft/NvGuy](https://github.com/guysoft/NvGuy) | Wires up nvim-dap, dap-ui, mason-nvim-dap, and the Run menu |
+
+The socket is available to any process in the tmux session:
+```bash
+NVIM_IDE_SOCK=$(tmux show-environment NVIM_IDE_SOCK | sed 's/^NVIM_IDE_SOCK=//')
+nvim --server "$NVIM_IDE_SOCK" --remote-expr "luaeval('vim.fn.getcwd()')"
+```
+
 ## Related Plugins
 
 - [tmux-resurrect-opencode-sessions](https://github.com/guysoft/tmux-resurrect-opencode-sessions) - Preserves OpenCode sessions across tmux restarts
